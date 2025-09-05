@@ -1,16 +1,16 @@
--- 1. Ingenieros con más de 5 solicitudes asignadas (no funciona)
-SELECT i.nombre, COUNT(*) AS total_solicitudes
-FROM ingenieros i
-JOIN ingeniero_solicitud isq ON i.rut = isq.rut_ingeniero
-GROUP BY i.nombre
+-- 1. Ingenieros con más de 5 solicitudes asignadas 
+SELECT ing.nombre, COUNT(*) AS total_solicitudes
+FROM ingenieros ing
+JOIN ingeniero_solicitud ingsol ON ing.rut = ingsol.rut_ingeniero
+GROUP BY ing.nombre
 HAVING COUNT(*) > 5;
 
 -- 2. Identificar los 10 errores más antiguos que se han reportado.
 -- Muestra el título del error, su fecha de publicación y el nombre del autor.
-SELECT se.titulo, se.fecha_publicacion, u.nombre AS autor
-FROM solicitudes_error se
-JOIN usuarios u ON se.autor_rut = u.rut
-ORDER BY se.fecha_publicacion ASC
+SELECT solErr.titulo, solErr.fecha_publicacion, usuarios.nombre AS autor
+FROM solicitudes_error solErr
+JOIN usuarios usuarios ON solErr.autor_rut = usuarios.rut
+ORDER BY solErr.fecha_publicacion ASC
 LIMIT 10;
 
 -- 3. Lista de todas las nuevas funcionalidades solicitadas para el ambiente "Movil"
@@ -43,13 +43,13 @@ UPDATE solicitudes_funcionalidad
 SET estado = 'Archivado'
 WHERE fecha_creacion < (CURRENT_DATE - INTERVAL '3 years');
 
--- 7. Lista de todos los ingenieros especialistas en un tópico específico (ejemplo: 'Seguridad')
+-- 7. Lista de todos los ingenieros especialistas en un tópico específico
 SELECT i.nombre, ie.especialidad
 FROM ingenieros i
 JOIN ingeniero_especialidad ie ON i.rut = ie.rut_ingeniero
-WHERE ie.especialidad = 'Backend';
+WHERE ie.especialidad = 'Seguridad'; --ejemplo
 
--- 8. Cantidad total de solicitudes (errores y funcionalidades) creadas por cada usuario
+-- 8. Cantidad total de solicitudes (errores y funcionalidades juntas) creadas por cada usuario
 SELECT u.nombre,
        COUNT(DISTINCT se.id) AS errores,
        COUNT(DISTINCT sf.id) AS funcionalidades,
@@ -59,7 +59,7 @@ LEFT JOIN solicitudes_error se ON u.rut = se.autor_rut
 LEFT JOIN solicitudes_funcionalidad sf ON u.rut = sf.solicitante_rut
 GROUP BY u.nombre;
 
--- 9. Cantidad de ingenieros especialistas en cada tema (resultado separado por coma)
+-- 9. Cantidad de ingenieros especialistas en cada tema
 SELECT STRING_AGG(t, ', ') AS resumen
 FROM (
     SELECT especialidad || ': ' || COUNT(*) AS t

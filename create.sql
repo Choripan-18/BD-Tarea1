@@ -1,32 +1,39 @@
--- Tabla de Usuarios
+-- Tablas--
+
+-- Tabla de usuarios
 CREATE TABLE usuarios (
     rut VARCHAR(10) PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL
 );
 
--- Tabla de Ingenieros
+
+-- Tabla de ingenieros
 CREATE TABLE ingenieros (
     rut VARCHAR(10) PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL
 );
 
--- Tabla de Especialidades de Ingenieros (máximo 2 por ingeniero)
-CREATE TABLE ingeniero_especialidad (
-    rut_ingeniero VARCHAR(10),
-    especialidad VARCHAR(50),
-    PRIMARY KEY (rut_ingeniero, especialidad),
-    FOREIGN KEY (rut_ingeniero) REFERENCES ingenieros(rut)
-);
 
--- Tabla de Tópicos
+-- Tabla de topicos
 CREATE TABLE topicos (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(50) UNIQUE NOT NULL
 );
 
--- Tabla de Solicitudes de Funcionalidad
+
+-- Tabla de especialidades de ingenieros
+CREATE TABLE ingeniero_especialidad (
+    rut_ingeniero VARCHAR(10),
+    id_topico INT,
+    PRIMARY KEY (rut_ingeniero, id_topico),
+    FOREIGN KEY (rut_ingeniero) REFERENCES ingenieros(rut),
+    FOREIGN KEY (id_topico) REFERENCES topicos(id)
+);
+
+
+-- Tabla de solicitudes de funcionalidad
 CREATE TABLE solicitudes_funcionalidad (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(150) NOT NULL UNIQUE,
@@ -40,7 +47,7 @@ CREATE TABLE solicitudes_funcionalidad (
     FOREIGN KEY (solicitante_rut) REFERENCES usuarios(rut)
 );
 
--- Tabla de Criterios de Aceptación (mínimo 3 por solicitud)
+-- Tabla de criterios de aceptación
 CREATE TABLE criterios_aceptacion (
     id SERIAL PRIMARY KEY,
     id_funcionalidad INT NOT NULL,
@@ -48,7 +55,7 @@ CREATE TABLE criterios_aceptacion (
     FOREIGN KEY (id_funcionalidad) REFERENCES solicitudes_funcionalidad(id)
 );
 
--- Tabla de Solicitudes de Errores
+-- Tabla de solicitudes de errores
 CREATE TABLE solicitudes_error (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(150) NOT NULL UNIQUE,
@@ -61,17 +68,18 @@ CREATE TABLE solicitudes_error (
     FOREIGN KEY (autor_rut) REFERENCES usuarios(rut)
 );
 
--- Tabla de Asignación de Ingenieros a Solicitudes (3 por solicitud)
+-- Tabla de asignación de ingenieros
 CREATE TABLE ingeniero_solicitud (
     id SERIAL PRIMARY KEY,
     rut_ingeniero VARCHAR(10) NOT NULL,
-    tipo_solicitud VARCHAR(20) NOT NULL, -- 'funcionalidad' o 'error'
+    tipo_solicitud VARCHAR(20) NOT NULL, -- "funcionalidad" o "error"
     id_solicitud INT NOT NULL,
     FOREIGN KEY (rut_ingeniero) REFERENCES ingenieros(rut)
 );
 
 
--- Triggers
+-- Triggers --
+
 -- Trigger para limitar 3 ingenieros por solicitud
 CREATE OR REPLACE FUNCTION limitar_ingenieros_por_solicitud()
 RETURNS TRIGGER AS $$

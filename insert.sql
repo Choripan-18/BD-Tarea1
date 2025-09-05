@@ -1,3 +1,6 @@
+-- Poblacion de datos --
+
+-- 8 Topicos
 INSERT INTO topicos (nombre) VALUES
 ('Backend'), ('Seguridad'), ('UX/UI'), ('Base de Datos'), ('API'), ('Frontend'), ('DevOps'), ('Testing');
 
@@ -14,6 +17,7 @@ BEGIN
   END LOOP;
 END;
 $$;
+
 -- Solicitudes de error 
 DO $$
 DECLARE
@@ -27,7 +31,7 @@ BEGIN
     VALUES (
       'Error_' || i,
       'Descripción del error número ' || i,
-      (CURRENT_DATE - (i % 1800)),
+      (CURRENT_DATE - ([floor[random()*3000])]),
       topico_id,
       autor_rut,
       (ARRAY['Abierto','En Progreso','Resuelto','Cerrado'])[floor(random()*4)+1]
@@ -56,8 +60,8 @@ BEGIN
       topico_id,
       solicitante_rut,
       (ARRAY['Abierto','En Progreso','Resuelto','Cerrado'])[floor(random()*4)+1],
-      (CURRENT_DATE - (i % 1000))
-    );
+      (CURRENT_DATE - (floor(random()*3000)::INT)
+      ));
   END LOOP;
 END;
 $$;
@@ -91,45 +95,107 @@ BEGIN
 END;
 $$;
 
--- Cada ingeniero con 1 o 2 especialidades
-INSERT INTO ingeniero_especialidad (rut_ingeniero, especialidad)
-SELECT rut, (ARRAY['Backend','Seguridad','UX/UI','Base de Datos','API','Frontend','DevOps','Testing'])[floor(random()*8)+1]
-FROM ingenieros
-ON CONFLICT DO NOTHING;
-
-INSERT INTO ingeniero_especialidad (rut_ingeniero, especialidad)
-SELECT rut, (ARRAY['Backend','Seguridad','UX/UI','Base de Datos','API','Frontend','DevOps','Testing'])[floor(random()*8)+1]
-FROM ingenieros
-WHERE random() > 0.5
-ON CONFLICT DO NOTHING;
-
--- Asignar 3 ingenieros aleatorios a cada solicitud de funcionalidad
+--Especialidades ingenieros
 DO $$
 DECLARE
-  func_id INT;
-  ing_rut VARCHAR(10);
+  ing RECORD;
+  topico1 INT;
+  topico2 INT;
 BEGIN
-  FOR func_id IN SELECT id FROM solicitudes_funcionalidad LOOP
-    FOR i IN 1..3 LOOP
-      SELECT rut INTO ing_rut FROM ingenieros ORDER BY random() LIMIT 1;
-      INSERT INTO ingeniero_solicitud (rut_ingeniero, tipo_solicitud, id_solicitud)
-      VALUES (ing_rut, 'funcionalidad', func_id);
-    END LOOP;
+  FOR ing IN SELECT rut FROM ingenieros LOOP
+    SELECT id INTO topico1 FROM topicos ORDER BY random() LIMIT 1;
+    INSERT INTO ingeniero_especialidad (rut_ingeniero, id_topico) VALUES (ing.rut, topico1);
+    IF random() > 0.5 THEN
+      LOOP
+        SELECT id INTO topico2 FROM topicos ORDER BY random() LIMIT 1;
+        EXIT WHEN topico2 <> topico1;
+      END LOOP;
+      INSERT INTO ingeniero_especialidad (rut_ingeniero, id_topico) VALUES (ing.rut, topico2);
+    END IF;
   END LOOP;
 END;
 $$;
 
--- Asignar 3 ingenieros aleatorios a cada solicitud de error
+-- Asignar ingenieros a funcionalidad 
+DO $$
+DECLARE
+  func_id INT;
+  ing_rut VARCHAR(10);
+  intentos INT;
+BEGIN
+  FOR func_id IN SELECT id FROM solicitudes_funcionalidad LOOP
+    FOR i IN 1..3 LOOP
+      intentos := 0;
+      LOOP
+        SELECT rut INTO ing_rut FROM ingeniero_especialidad
+        WHERE id_topico = topico_id
+          AND (
+          SELECT COUNT(*) FROM ingeniero_solicitud
+          WHERE rut_ingeniero = ingeniero_especialidad.rut_ingeniero
+          ) < 20
+        ORDER BY random() LIMIT 1;
+        -- Si no hay ingeniero disponible, salir del loop
+        IF ing_rut IS NULL THEN
+          EXIT;
+        END IF;
+        -- Verifica que el ingeniero no esté ya asignado a esta solicitud
+        IF NOT EXISTS (
+          SELECT 1 FROM ingeniero_solicitud
+          WHERE rut_ingeniero = ing_rut
+            AND tipo_solicitud = 'funcionalidad'
+            AND id_solicitud = func_id
+        ) THEN
+          INSERT INTO ingeniero_solicitud (rut_ingeniero, tipo_solicitud, id_solicitud)
+          VALUES (ing_rut, 'funcionalidad', func_id);
+          EXIT;
+        END IF;
+        intentos := intentos + 1;
+        IF intentos > 10 THEN
+          EXIT; -- Evita loops infinitos si no hay ingenieros disponibles
+        END IF;
+      END LOOP;
+    END LOOP;
+  END LOOP;
+END;
+$$;
+-- Asignar ingenieros a errores
 DO $$
 DECLARE
   err_id INT;
   ing_rut VARCHAR(10);
+  intentos INT;
 BEGIN
   FOR err_id IN SELECT id FROM solicitudes_error LOOP
     FOR i IN 1..3 LOOP
-      SELECT rut INTO ing_rut FROM ingenieros ORDER BY random() LIMIT 1;
-      INSERT INTO ingeniero_solicitud (rut_ingeniero, tipo_solicitud, id_solicitud)
-      VALUES (ing_rut, 'error', err_id);
+      intentos := 0;
+      LOOP
+        SELECT rut INTO ing_rut FROM ingeniero_especialidad
+        WHERE id_topico = topico_id
+          AND (
+          SELECT COUNT(*) FROM ingeniero_solicitud
+          WHERE rut_ingeniero = ingenieros_especialidad.rut_ingeniero
+          ) < 20
+        ORDER BY random() LIMIT 1;
+        -- Si no hay ingeniero disponible, salir del loop
+        IF ing_rut IS NULL THEN
+          EXIT;
+        END IF;
+        -- Verifica que el ingeniero no esté ya asignado a esta solicitud
+        IF NOT EXISTS (
+          SELECT 1 FROM ingeniero_solicitud
+          WHERE rut_ingeniero = ing_rut
+            AND tipo_solicitud = 'error'
+            AND id_solicitud = err_id
+        ) THEN
+          INSERT INTO ingeniero_solicitud (rut_ingeniero, tipo_solicitud, id_solicitud)
+          VALUES (ing_rut, 'error', err_id);
+          EXIT;
+        END IF;
+        intentos := intentos + 1;
+        IF intentos > 10 THEN
+          EXIT; -- Evita loops infinitos si no hay ingenieros disponibles
+        END IF;
+      END LOOP;
     END LOOP;
   END LOOP;
 END;
