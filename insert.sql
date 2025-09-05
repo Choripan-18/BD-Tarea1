@@ -14,31 +14,6 @@ BEGIN
   END LOOP;
 END;
 $$;
-
--- 50 ingenieros
-DO $$
-BEGIN
-  FOR i IN 1..50 LOOP
-    INSERT INTO ingenieros (rut, nombre, email)
-    VALUES (
-      LPAD((i+100)::text,8,'0') || '-' || (i%10)::text,
-      'Ingeniero_' || i,
-      'ingeniero' || i || '@mail.com'
-    );
-  END LOOP;
-END;
-$$;
-
--- Cada ingeniero con 1 o 2 especialidades
-INSERT INTO ingeniero_especialidad (rut_ingeniero, especialidad)
-SELECT rut, (ARRAY['Backend','Seguridad','UX/UI','Base de Datos','API','Frontend','DevOps','Testing'])[floor(random()*8)+1]
-FROM ingenieros;
-
-INSERT INTO ingeniero_especialidad (rut_ingeniero, especialidad)
-SELECT rut, (ARRAY['Backend','Seguridad','UX/UI','Base de Datos','API','Frontend','DevOps','Testing'])[floor(random()*8)+1]
-FROM ingenieros
-WHERE random() > 0.5;
-
 -- Solicitudes de error 
 DO $$
 DECLARE
@@ -101,6 +76,31 @@ BEGIN
   END LOOP;
 END;
 $$;
+
+-- 50 ingenieros
+DO $$
+BEGIN
+  FOR i IN 1..50 LOOP
+    INSERT INTO ingenieros (rut, nombre, email)
+    VALUES (
+      LPAD((i+100)::text,8,'0') || '-' || (i%10)::text,
+      'Ingeniero_' || i,
+      'ingeniero' || i || '@mail.com'
+    );
+  END LOOP;
+END;
+$$;
+
+-- Cada ingeniero con 1 o 2 especialidades
+INSERT INTO ingeniero_especialidad (rut_ingeniero, especialidad)
+SELECT rut, (ARRAY['Backend','Seguridad','UX/UI','Base de Datos','API','Frontend','DevOps','Testing'])[floor(random()*8)+1]
+FROM ingenieros;
+
+INSERT INTO ingeniero_especialidad (rut_ingeniero, especialidad)
+SELECT rut, (ARRAY['Backend','Seguridad','UX/UI','Base de Datos','API','Frontend','DevOps','Testing'])[floor(random()*8)+1]
+FROM ingenieros
+WHERE random() > 0.5;
+
 
 -- Asignar 3 ingenieros aleatorios a cada solicitud de funcionalidad
 DO $$

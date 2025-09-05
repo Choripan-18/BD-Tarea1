@@ -1,4 +1,4 @@
--- 1. Ingenieros con más de 5 solicitudes asignadas
+-- 1. Ingenieros con más de 5 solicitudes asignadas (no funciona)
 SELECT i.nombre, COUNT(*) AS total_solicitudes
 FROM ingenieros i
 JOIN ingeniero_solicitud isq ON i.rut = isq.rut_ingeniero
