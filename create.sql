@@ -67,9 +67,7 @@ CREATE TABLE ingeniero_solicitud (
     rut_ingeniero VARCHAR(10) NOT NULL,
     tipo_solicitud VARCHAR(20) NOT NULL, -- 'funcionalidad' o 'error'
     id_solicitud INT NOT NULL,
-    FOREIGN KEY (rut_ingeniero) REFERENCES ingenieros(rut),
-    -- FK dinámica según tipo_solicitud
-    -- Se puede manejar con triggers o validación en la aplicación
+    FOREIGN KEY (rut_ingeniero) REFERENCES ingenieros(rut)
 );
 
 
@@ -79,7 +77,7 @@ CREATE OR REPLACE FUNCTION limitar_ingenieros_por_solicitud()
 RETURNS TRIGGER AS $$
 BEGIN
     IF (
-        SELECT COUNT(*) FROM ingeniero_solicitud
+        SELECT COUNT(*) FROM ingeniero_solicitud 
         WHERE tipo_solicitud = NEW.tipo_solicitud
           AND id_solicitud = NEW.id_solicitud
     ) >= 3 THEN

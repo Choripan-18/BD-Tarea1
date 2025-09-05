@@ -94,13 +94,14 @@ $$;
 -- Cada ingeniero con 1 o 2 especialidades
 INSERT INTO ingeniero_especialidad (rut_ingeniero, especialidad)
 SELECT rut, (ARRAY['Backend','Seguridad','UX/UI','Base de Datos','API','Frontend','DevOps','Testing'])[floor(random()*8)+1]
-FROM ingenieros;
+FROM ingenieros
+ON CONFLICT DO NOTHING;
 
 INSERT INTO ingeniero_especialidad (rut_ingeniero, especialidad)
 SELECT rut, (ARRAY['Backend','Seguridad','UX/UI','Base de Datos','API','Frontend','DevOps','Testing'])[floor(random()*8)+1]
 FROM ingenieros
-WHERE random() > 0.5;
-
+WHERE random() > 0.5
+ON CONFLICT DO NOTHING;
 
 -- Asignar 3 ingenieros aleatorios a cada solicitud de funcionalidad
 DO $$
