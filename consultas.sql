@@ -44,10 +44,11 @@ SET estado = 'Archivado'
 WHERE fecha_creacion < (CURRENT_DATE - INTERVAL '3 years');
 
 -- 7. Lista de todos los ingenieros especialistas en un tópico específico
-SELECT i.nombre, it.ingeniero_especialidad
+SELECT i.nombre, t.nombre AS especialidad
 FROM ingenieros i
 JOIN ingeniero_especialidad ie ON i.rut = ie.rut_ingeniero
-WHERE ie.id_topico = 'Seguridad'; --ejemplo
+JOIN topicos t ON ie.id_topico = t.id  
+WHERE ie.id_topico = 3; --ejemplo
 
 -- 8. Cantidad total de solicitudes (errores y funcionalidades juntas) creadas por cada usuario
 SELECT u.nombre,
@@ -60,11 +61,12 @@ LEFT JOIN solicitudes_funcionalidad sf ON u.rut = sf.solicitante_rut
 GROUP BY u.nombre;
 
 -- 9. Cantidad de ingenieros especialistas en cada tema
-SELECT STRING_AGG(t, ', ') AS resumen
+SELECT STRING_AGG(topico_res, ', ') AS resumen
 FROM (
-    SELECT especialidad || ': ' || COUNT(*) AS t
-    FROM ingeniero_especialidad
-    GROUP BY id_topico
+  SELECT t.nombre || ': ' || COUNT(*) AS topico_res
+  FROM ingeniero_especialidad ie
+  JOIN topicos t ON ie.id_topico = t.id
+  GROUP BY t.nombre
 ) sub;
 
 -- 10. Elimina todas las solicitudes de gestión de error que tengan más de 5 años de antigüedad
