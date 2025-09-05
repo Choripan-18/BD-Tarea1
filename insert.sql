@@ -39,6 +39,7 @@ SELECT rut, (ARRAY['Backend','Seguridad','UX/UI','Base de Datos','API','Frontend
 FROM ingenieros
 WHERE random() > 0.5;
 
+-- Solicitudes de error 
 DO $$
 DECLARE
   topico_id INT;
@@ -60,6 +61,8 @@ BEGIN
 END;
 $$;
 
+
+-- Solicitudes de funcionalidad
 DO $$
 DECLARE
   topico_id INT;
@@ -84,6 +87,8 @@ BEGIN
 END;
 $$;
 
+
+-- Criterios de aceptación
 DO $$
 DECLARE
   func_id INT;
