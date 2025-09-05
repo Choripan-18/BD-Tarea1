@@ -81,10 +81,10 @@ BEGIN
 END;
 $$;
 
--- 50 ingenieros
+-- 50 ingenieros -> 99 para manejar mas solicitudes
 DO $$
 BEGIN
-  FOR i IN 1..50 LOOP
+  FOR i IN 1..99 LOOP
     INSERT INTO ingenieros (rut, nombre, email)
     VALUES (
       LPAD((i+100)::text,8,'0') || '-' || (i%10)::text,
@@ -125,6 +125,7 @@ DECLARE
   intentos INT;
 BEGIN
   FOR func_id IN SELECT id FROM solicitudes_funcionalidad LOOP
+  SELECT id_topico INTO topico_id FROM solicitudes_funcionalidad WHERE id = func_id;
     FOR i IN 1..3 LOOP
       intentos := 0;
       LOOP
@@ -168,6 +169,7 @@ DECLARE
   intentos INT;
 BEGIN
   FOR err_id IN SELECT id FROM solicitudes_error LOOP
+  SELECT id_topico INTO topico_id FROM solicitudes_error WHERE id = err_id;
     FOR i IN 1..3 LOOP
       intentos := 0;
       LOOP
