@@ -31,7 +31,7 @@ BEGIN
     VALUES (
       'Error_' || i,
       'Descripción del error número ' || i,
-      (CURRENT_DATE - ([floor[random()*3000])]),
+      (CURRENT_DATE - (floor(random()*3000)::INT)),
       topico_id,
       autor_rut,
       (ARRAY['Abierto','En Progreso','Resuelto','Cerrado'])[floor(random()*4)+1]
@@ -120,6 +120,7 @@ $$;
 DO $$
 DECLARE
   func_id INT;
+  topico_id INT;
   ing_rut VARCHAR(10);
   intentos INT;
 BEGIN
@@ -127,7 +128,7 @@ BEGIN
     FOR i IN 1..3 LOOP
       intentos := 0;
       LOOP
-        SELECT rut INTO ing_rut FROM ingeniero_especialidad
+        SELECT rut_ingeniero INTO ing_rut FROM ingeniero_especialidad
         WHERE id_topico = topico_id
           AND (
           SELECT COUNT(*) FROM ingeniero_solicitud
@@ -162,6 +163,7 @@ $$;
 DO $$
 DECLARE
   err_id INT;
+  topico_id INT;
   ing_rut VARCHAR(10);
   intentos INT;
 BEGIN
@@ -169,11 +171,11 @@ BEGIN
     FOR i IN 1..3 LOOP
       intentos := 0;
       LOOP
-        SELECT rut INTO ing_rut FROM ingeniero_especialidad
+        SELECT rut_ingeniero INTO ing_rut FROM ingeniero_especialidad
         WHERE id_topico = topico_id
           AND (
           SELECT COUNT(*) FROM ingeniero_solicitud
-          WHERE rut_ingeniero = ingenieros_especialidad.rut_ingeniero
+          WHERE rut_ingeniero = ingeniero_especialidad.rut_ingeniero
           ) < 20
         ORDER BY random() LIMIT 1;
         -- Si no hay ingeniero disponible, salir del loop
